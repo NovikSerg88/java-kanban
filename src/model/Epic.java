@@ -1,6 +1,6 @@
-package Model;
+package model;
 
-import Service.TaskManager;
+import service.TaskManager;
 
 import java.util.HashMap;
 
@@ -22,26 +22,6 @@ public class Epic extends Task {
                 '}';
     }
 
-    @Override
-    public Status getStatus() {
-        for (Integer subtaskId : subtasks.keySet()) {
-            if ((Status.NEW.equals(subtasks.get(subtaskId).getStatus())) || (subtasks == null)) {
-                return Status.NEW;
-            }
-            if (Status.DONE.equals(subtasks.get(subtaskId).getStatus())) {
-                return Status.DONE;
-            } else {
-                return Status.IN_PROGRESS;
-            }
-        }
-        return super.getStatus();
-    }
-
-    @Override
-    public void setStatus(Status status) {
-        super.setStatus(status);
-    }
-
     public HashMap<Integer, Subtask> getSubtasks() {
         for (Integer id : TaskManager.subtasks.keySet()) {
             if (TaskManager.subtasks != null) {
@@ -51,9 +31,5 @@ public class Epic extends Task {
             } else return null;
         }
         return subtasks;
-    }
-
-    public void setSubtasks(HashMap<Integer, Subtask> subtasks) {
-        this.subtasks = subtasks;
     }
 }

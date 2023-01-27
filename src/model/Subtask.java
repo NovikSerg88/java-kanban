@@ -1,4 +1,4 @@
-package Model;
+package model;
 
 public class Subtask extends Task {
     private Integer epicId;
@@ -26,6 +26,5 @@ public class Subtask extends Task {
 
     public void setEpicId(Integer epicId) {
         this.epicId = epicId;
-
     }
 }
