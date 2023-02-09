@@ -7,12 +7,13 @@ import model.Task;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class InMemoryTaskManager implements TaskManager {
     private int id = 0;
-    protected HashMap<Integer, Task> tasks = new HashMap<>();
-    protected HashMap<Integer, Subtask> subtasks = new HashMap<>();
-    protected HashMap<Integer, Epic> epics = new HashMap<>();
+    protected Map<Integer, Task> tasks = new HashMap<>();
+    protected Map<Integer, Subtask> subtasks = new HashMap<>();
+    protected Map<Integer, Epic> epics = new HashMap<>();
     private final HistoryManager historyManager = Managers.getDefaultHistory();
 
     @Override
@@ -22,17 +23,17 @@ public class InMemoryTaskManager implements TaskManager {
 
     /*Получение списка всех задач, подзадач, епиков*/
     @Override
-    public HashMap<Integer, Task> getListOfTasks() {
+    public Map<Integer, Task> getListOfTasks() {
         return tasks;
     }
 
     @Override
-    public HashMap<Integer, Subtask> getListOfSubtasks() {
+    public Map<Integer, Subtask> getListOfSubtasks() {
         return subtasks;
     }
 
     @Override
-    public HashMap<Integer, Epic> getListOfEpics() {
+    public Map<Integer, Epic> getListOfEpics() {
         return epics;
     }
 
@@ -140,34 +141,33 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     /*Обновление статуса эпика*/
-    @Override
-    public void updateEpicsStatus(int epicId) {
-        Epic epic = epics.get(epicId);
-        HashMap<Integer, Subtask> subtasks = epic.getSubtasks();
+    private void updateEpicsStatus(int epicId) {
+        Epic currentEpic = epics.get(epicId);
+        Map<Integer, Subtask> subtasksOfCurrentEpic = currentEpic.getSubtasks();
 
         if (subtasks.isEmpty()) {
-            epic.setStatus(Status.NEW);
+            currentEpic.setStatus(Status.NEW);
             return;
         }
 
         boolean allDone = true;
         boolean allNew = true;
-        for (Integer subtaskId : subtasks.keySet()) {
-            if (subtasks.get(subtaskId).getStatus() != Status.NEW) {
+        for (Integer subtaskId : subtasksOfCurrentEpic.keySet()) {
+            if (subtasksOfCurrentEpic.get(subtaskId).getStatus() != Status.NEW) {
                 allNew = false;
             }
-            if (subtasks.get(subtaskId).getStatus() != Status.DONE) {
+            if (subtasksOfCurrentEpic.get(subtaskId).getStatus() != Status.DONE) {
                 allDone = false;
             }
         }
         if (!allNew && !allDone) {
-            epic.setStatus(Status.IN_PROGRESS);
+            currentEpic.setStatus(Status.IN_PROGRESS);
         }
         if (allNew) {
-            epic.setStatus(Status.NEW);
+            currentEpic.setStatus(Status.NEW);
         }
         if (allDone) {
-            epic.setStatus(Status.DONE);
+            currentEpic.setStatus(Status.DONE);
         }
     }
 

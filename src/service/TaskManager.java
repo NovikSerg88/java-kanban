@@ -5,19 +5,19 @@ import model.Status;
 import model.Subtask;
 import model.Task;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface TaskManager {
 
     int setId();
 
     /*Получение списка всех задач, подзадач, епиков*/
-    HashMap<Integer, Task> getListOfTasks();
+    Map<Integer, Task> getListOfTasks();
 
-    HashMap<Integer, Subtask> getListOfSubtasks();
+    Map<Integer, Subtask> getListOfSubtasks();
 
-    HashMap<Integer, Epic> getListOfEpics();
+    Map<Integer, Epic> getListOfEpics();
 
     /*Удаление всех задач, подзадач, епиков*/
     public void deleteAllTask();
@@ -53,9 +53,6 @@ public interface TaskManager {
     void deleteSubtask(int id);
 
     void deleteEpic(int id);
-
-    /*Обновление статуса эпика*/
-    void updateEpicsStatus(int epicId);
 
     List<Task> getHistory();
 

@@ -6,21 +6,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InMemoryHistoryManager implements HistoryManager {
-
+    static final int MAX_TASKS = 10;
     protected List<Task> taskHistory = new ArrayList<>();
 
     @Override
     public void addTask(Task task) {
-        taskHistory.add(task);
+        if (taskHistory.size() < MAX_TASKS) {
+            taskHistory.add(task);
+        } else {
+            taskHistory.remove(0);
+            taskHistory.add(task);
+        }
     }
 
     @Override
     public List<Task> getHistory() {
-        if (taskHistory.size() > 10) {
-            taskHistory.remove(0);
-            return taskHistory;
-        } else {
-            return taskHistory;
-        }
+        return taskHistory;
     }
 }
