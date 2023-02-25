@@ -30,10 +30,25 @@ public class Main {
 
         taskManager.getTask(0);
         taskManager.getTask(1);
-        taskManager.getTask(0);
+        taskManager.getEpic(2);
+        taskManager.getSubtask(3);
+        taskManager.getSubtask(4);
+        taskManager.getSubtask(5);
+        taskManager.getEpic(6);
+        System.out.println(taskManager.getHistory());
+
         taskManager.getEpic(2);
         taskManager.getSubtask(3);
         taskManager.getEpic(6);
+        taskManager.getTask(0);
+        taskManager.getTask(1);
+        taskManager.getSubtask(5);
+        taskManager.getSubtask(4);
+        System.out.println(taskManager.getHistory());
+
+        taskManager.deleteTask(0);
+        System.out.println(taskManager.getHistory());
+
         taskManager.deleteEpic(2);
         System.out.println(taskManager.getHistory());
     }

@@ -16,10 +16,8 @@ public class InMemoryHistoryManager implements HistoryManager {
     public void add(Task task) {
         if (historyMap.containsKey(task.getId())) {
             removeNode(historyMap.get(task.getId()));
-            linkLast(task);
-        } else {
-            linkLast(task);
         }
+        linkLast(task);
     }
 
     @Override
@@ -33,60 +31,49 @@ public class InMemoryHistoryManager implements HistoryManager {
         return getTasks();
     }
 
-    public void linkLast(Task task) {
+    private void linkLast(Task task) {
         final Node<Task> l = last;
         final Node<Task> newNode = new Node<>(l, task, null);
         last = newNode;
         historyMap.put(last.data.getId(), last);
         if (l == null) {
             first = newNode;
-
         } else {
             l.next = newNode;
         }
     }
 
-    public List<Task> getTasks() {
+    private List<Task> getTasks() {
         List<Task> arrayList = new ArrayList<>();
-        for (Node<Task> x = first; x != null; x = x.next) {
-            arrayList.add(x.data);
+        for (Node<Task> currentNode = first; currentNode != null; currentNode = currentNode.next) {
+            arrayList.add(currentNode.data);
         }
         return arrayList;
     }
 
-    public void unlink(Node<Task> x) {
-        final Node<Task> next = x.next;
-        final Node<Task> prev = x.prev;
+    private void unlink(Node<Task> currentNode) {
+        final Node<Task> next = currentNode.next;
+        final Node<Task> prev = currentNode.prev;
 
         if (prev == null) {
             first = next;
         } else {
             prev.next = next;
-            x.prev = null;
+            currentNode.prev = null;
         }
-
         if (next == null) {
             last = prev;
         } else {
             next.prev = prev;
-            x.next = null;
+            currentNode.next = null;
         }
-
-        x.data = null;
+        currentNode.data = null;
     }
 
-    public void removeNode(Node<Task> n) {
-        if (n == null) {
-            for (Node<Task> x = first; x != null; x = x.next) {
-                if (x.data == null) {
-                    unlink(x);
-                }
-            }
-        } else {
-            for (Node<Task> x = first; x != null; x = x.next) {
-                if (n.data.equals(x.data)) {
-                    unlink(x);
-                }
+    private void removeNode(Node<Task> node) {
+        for (Node<Task> currentNode = first; currentNode != null; currentNode = currentNode.next) {
+            if (node.data.equals(currentNode.data)) {
+                unlink(currentNode);
             }
         }
     }
