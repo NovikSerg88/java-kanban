@@ -17,12 +17,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return "Task{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", status=" + status +
-                ", description='" + description + '\'' +
-                '}';
+        return getId() + "," + Type.TASK + "," + getName() + "," + status + "," + description;
     }
 
     public int getId() {
@@ -47,6 +42,10 @@ public class Task {
 
     public String getDescription() {
         return description;
+    }
+
+    public Type getType() {
+        return Type.TASK;
     }
 
 }

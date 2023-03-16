@@ -6,12 +6,15 @@ import service.InMemoryHistoryManager;
 import service.Managers;
 import service.TaskManager;
 
+import java.io.IOException;
+
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+
+        /*InMemoryTaskManager*/
 
         TaskManager taskManager = Managers.getDefault();
-
         Task task1 = new Task(taskManager.setId(), "", "", Status.NEW);
         Task task2 = new Task(taskManager.setId(), "", "", Status.NEW);
         Epic epic1 = new Epic(taskManager.setId(), "", "", Status.NEW);
@@ -27,29 +30,5 @@ public class Main {
         taskManager.addSubtask(subtask2);
         taskManager.addSubtask(subtask3);
         taskManager.addEpic(epic2);
-
-        taskManager.getTask(0);
-        taskManager.getTask(1);
-        taskManager.getEpic(2);
-        taskManager.getSubtask(3);
-        taskManager.getSubtask(4);
-        taskManager.getSubtask(5);
-        taskManager.getEpic(6);
-        System.out.println(taskManager.getHistory());
-
-        taskManager.getEpic(2);
-        taskManager.getSubtask(3);
-        taskManager.getEpic(6);
-        taskManager.getTask(0);
-        taskManager.getTask(1);
-        taskManager.getSubtask(5);
-        taskManager.getSubtask(4);
-        System.out.println(taskManager.getHistory());
-
-        taskManager.deleteTask(0);
-        System.out.println(taskManager.getHistory());
-
-        taskManager.deleteEpic(2);
-        System.out.println(taskManager.getHistory());
     }
 }

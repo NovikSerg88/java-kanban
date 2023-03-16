@@ -12,16 +12,14 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        return "Epic{" +
-                "id=" + getId() +
-                ", name='" + getName() + '\'' +
-                ", status=" + getStatus() +
-                ", description='" + getDescription() + '\'' +
-                ", subtasks='" + subtasks + '\'' +
-                '}';
+        return getId() + "," + Type.EPIC + "," + getName() + "," + getStatus() + "," + getDescription() + "," + subtasks;
     }
 
     public Map<Integer, Subtask> getSubtasks() {
         return subtasks;
+    }
+
+    public Type getType() {
+        return Type.EPIC;
     }
 }
