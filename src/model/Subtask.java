@@ -10,15 +10,15 @@ public class Subtask extends Task {
 
     @Override
     public String toString() {
-        return getId() + "," + Type.SUBTASK + "," + getName() + ","+ getStatus() + "," + getDescription() + "," + epicId;
+        return getId() + "," + TaskType.SUBTASK + "," + getName() + ","+ getStatus() + "," + getDescription() + "," + epicId;
     }
 
     public Integer getEpicId() {
         return epicId;
     }
 
-    public Type getType() {
-        return Type.SUBTASK;
+    public TaskType getType() {
+        return TaskType.SUBTASK;
     }
 
 }

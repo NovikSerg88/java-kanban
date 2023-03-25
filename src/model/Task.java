@@ -17,7 +17,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return getId() + "," + Type.TASK + "," + getName() + "," + status + "," + description;
+        return getId() + "," + TaskType.TASK + "," + getName() + "," + status + "," + description;
     }
 
     public int getId() {
@@ -44,8 +44,8 @@ public class Task {
         return description;
     }
 
-    public Type getType() {
-        return Type.TASK;
+    public TaskType getType() {
+        return TaskType.TASK;
     }
 
 }

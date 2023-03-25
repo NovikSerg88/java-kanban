@@ -5,19 +5,21 @@ import model.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.*;
 import java.nio.file.Path;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
+    private final File file;
 
-    File dir = new File("C:\\Users\\Sergei\\dev\\java-kanban\\resources");
-    File file = new File(dir, "Tasks.csv");
+    public FileBackedTaskManager(File file) {
+        super();
+        this.file = file;
+    }
 
     public static void main(String[] args) throws IOException {
-        File dir = new File("C:\\Users\\Sergei\\dev\\java-kanban\\resources");
-        File file = new File(dir, "Tasks.csv");
-        TaskManager fileBackedTaskManager = Managers.getFileBacked();
+        Path path = Path.of("resources/Tasks.csv");
+        File file = new File(String.valueOf(path));
+        TaskManager fileBackedTaskManager = new FileBackedTaskManager(file);
 
         Task task1 = new Task(fileBackedTaskManager.setId(), "Task1", "DescriptionTask1", Status.NEW);
         Task task2 = new Task(fileBackedTaskManager.setId(), "Task2", "DescriptionTask2", Status.NEW);
@@ -39,11 +41,16 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         fileBackedTaskManager.getSubtask(3);
         fileBackedTaskManager.getTask(0);
         fileBackedTaskManager.getEpic(5);
+        fileBackedTaskManager.getTask(1);
 
-        loadFromFile(file);
-        List<Task> history = fileBackedTaskManager.getHistory();
-        System.out.println(history);
+        /* Создаем новый менеджер из файла */
+        TaskManager fileBackedTaskManager1 = loadFromFile(file);
 
+        /* Проверяем, что все таски и история просмотра восстановлены из файла */
+        System.out.println(fileBackedTaskManager1.getListOfTasks());
+        System.out.println(fileBackedTaskManager1.getListOfSubtasks());
+        System.out.println(fileBackedTaskManager1.getListOfEpics());
+        System.out.println(fileBackedTaskManager1.getHistory());
     }
 
     @Override
@@ -69,16 +76,19 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     @Override
     public void deleteAllTask() {
         super.deleteAllTask();
+        save();
     }
 
     @Override
     public void deleteAllSubtasks() {
         super.deleteAllSubtasks();
+        save();
     }
 
     @Override
     public void deleteAllEpics() {
         super.deleteAllEpics();
+        save();
     }
 
     @Override
@@ -123,16 +133,19 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     @Override
     public void updateTask(Task task) {
         super.updateTask(task);
+        save();
     }
 
     @Override
     public void updateSubtask(Subtask subtask) {
         super.updateSubtask(subtask);
+        save();
     }
 
     @Override
     public void updateEpic(Epic epic) {
         super.updateEpic(epic);
+        save();
     }
 
     @Override
@@ -144,11 +157,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     @Override
     public void deleteSubtask(int id) {
         super.deleteSubtask(id);
+        save();
     }
 
     @Override
     public void deleteEpic(int id) {
         super.deleteEpic(id);
+        save();
     }
 
     @Override
@@ -156,9 +171,23 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return super.getHistory();
     }
 
+    /* Добавили три метода добавления тасок в память*/
+    public void addTaskInMemory(Task task) {
+        super.addTask(task);
+    }
+
+    public void addSubtaskInMemory(Subtask subtask) {
+        super.addSubtask(subtask);
+    }
+
+    public void addEpicInMemory(Epic epic) {
+        super.addEpic(epic);
+    }
+
+    /* Метод сохранения менеджера в файл */
     public void save() {
         try {
-            Writer fileWriter = new FileWriter(file.getPath(), StandardCharsets.UTF_8);
+            Writer fileWriter = new FileWriter(file, StandardCharsets.UTF_8);
             HashMap<Integer, Task> allTasks = new HashMap<>();
             allTasks.putAll(tasks);
             allTasks.putAll(subtasks);
@@ -171,103 +200,107 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             fileWriter.write(historyToString(historyManager));
             fileWriter.close();
         } catch (IOException e) {
-            throw new ManagerSaveException("Запись не возможна!", e);
+            throw new ManagerSaveException("Запись не возможна.", e);
         }
     }
 
+    /* Метод восстановления данных менеджера из файла в память */
     public static FileBackedTaskManager loadFromFile(File file) throws IOException {
+        FileBackedTaskManager manager = new FileBackedTaskManager(file);
+        List<Integer> history;
         try {
-            FileBackedTaskManager fileBackedTaskManager = new FileBackedTaskManager();
-            String str = Files.readString(Path.of(file.toURI()));
-            List<Integer> historyId = new ArrayList<>();
-            fileBackedTaskManager.fromFile(str);
-            historyId = historyFromString(str);
-            for (int id : historyId) {
-                if (fileBackedTaskManager.tasks.get(id) != null) {
-                    fileBackedTaskManager.historyManager.add(fileBackedTaskManager.tasks.get(id));
-                } else if (fileBackedTaskManager.subtasks.get(id) != null) {
-                    fileBackedTaskManager.historyManager.add(fileBackedTaskManager.subtasks.get(id));
-                } else if (fileBackedTaskManager.epics.get(id) != null) {
-                    fileBackedTaskManager.historyManager.add(fileBackedTaskManager.epics.get(id));
+            BufferedReader br = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8));
+            //Пропустили титул
+            br.readLine();
+            //Читаем файл дальше пока строка не пустая
+            while (br.ready()) {
+                String line = br.readLine();
+                if (line.isEmpty()) {
+                    break;
+                }
+                //Создаем таску в менеджере из прочитанной строки и формируем коллекции в памяти
+                Task task = manager.fromString(line);
+                if (task instanceof Epic) {
+                    manager.addEpicInMemory((Epic) task);
+                } else if (task instanceof Subtask) {
+                    manager.addSubtaskInMemory((Subtask) task);
+                } else {
+                    manager.addTaskInMemory(task);
                 }
             }
-            return fileBackedTaskManager;
+            //Читаем строку с историей и формируем менеджер истории
+            history = historyFromString(br.readLine());
+            for (int id : history) {
+                if (manager.tasks.get(id) != null) {
+                    manager.historyManager.add(manager.tasks.get(id));
+                } else if (manager.subtasks.get(id) != null) {
+                    manager.historyManager.add(manager.subtasks.get(id));
+                } else if (manager.epics.get(id) != null) {
+                    manager.historyManager.add(manager.epics.get(id));
+                }
+            }
         } catch (IOException e) {
             System.out.println("Невозможно прочитать файл.");
             return null;
         }
+        return manager;
     }
 
-    public void fromFile(String value) {
-        String[] split = value.split("\\n");
-        String[] tasks = new String[0];
-        String taskString = new String();
-        for (int i = 1; i < split.length - 2; i++) {
-            tasks = split[i].split(",");
-            taskString = String.join(",", tasks);
-            Task task = fromString(taskString);
-            //           getMap(task);
-        }
-    }
-
-    public void getMap(Task task) {
-        if (task.getType().equals(Type.TASK)) {
-            addTask(task);
-        }
-        if (task.getType().equals(Type.SUBTASK)) {
-            addSubtask((Subtask) task);
-        }
-        if (task.getType().equals(Type.EPIC)) {
-            addEpic((Epic) task);
-        }
-    }
-
+    /* Метод создания задачи из строки */
     public Task fromString(String value) {
         Task task = null;
-        String[] split = value.split("\\n");
-        for (int i = 0; i < split.length; i++) {
-            String[] array = split[i].split(",");
+        String[] line = value.split("\\n");
+        for (int i = 0; i < line.length; i++) {
+            String[] array = line[i].split(",");
             int id = Integer.parseInt(array[0]);
-            Type type = Type.valueOf(array[1]);
+            TaskType taskType = TaskType.valueOf(array[1]);
             String name = array[2];
             Status status = Status.valueOf(array[3]);
-            String dscr = array[4];
-            if (type == Type.TASK) {
-                task = new Task(id, name, dscr, status);
-            }
-            if (type == Type.SUBTASK) {
-                task = new Subtask(id, name, dscr, status, Integer.parseInt(array[5]));
-            }
-            if (type == Type.EPIC) {
-                task = new Epic(id, name, dscr, status);
+            String description = array[4];
+            switch (taskType) {
+                case TASK:
+                    task = new Task(id, name, description, status);
+                    break;
+                case SUBTASK:
+                    task = new Subtask(id, name, description, status, Integer.parseInt(array[5]));
+                    break;
+                case EPIC:
+                    task = new Epic(id, name, description, status);
+                    break;
+                default:
+                    System.out.println("Неизвестный тип задачи");
             }
         }
         return task;
     }
 
+    /* Метод сохранения истории в строку */
     public static String historyToString(HistoryManager manager) {
-        List<Integer> historyId = new ArrayList<>();
-        for (Task task : manager.getHistory()) {
-            historyId.add(task.getId());
+        List<Integer> id = new ArrayList<>();
+        if (manager.getHistory() == null) {
+            return "";
         }
-        String history = historyId.toString();
+        for (Task task : manager.getHistory()) {
+            id.add(task.getId());
+        }
+        // Преобразовали список id в строку и убрали []
+        String history = id.toString();
         history = history.substring(1, history.length() - 1);
         return history;
     }
 
+    /* Метод восстановления id просмотренных тасок менеджера истории из строки */
     public static List<Integer> historyFromString(String value) {
-        String[] split = value.split("\\n");
-        String[] lines = new String[0];
-        List<Integer> idList = new ArrayList<>();
-        for (int i = split.length - 1; i > split.length - 2; i--) {
-            lines = split[i].split(",");
-            for (int j = 0; j < lines.length; j++) {
-                idList.add(j);
-            }
+        List<Integer> history = new ArrayList<>();
+        String[] line = value.split(", ");
+        for (int i = 0; i < line.length; i++) {
+            history.add(Integer.valueOf(line[i]));
         }
-        return idList;
+        return history;
     }
+
 }
+
 
 
 
