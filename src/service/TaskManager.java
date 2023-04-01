@@ -1,13 +1,14 @@
 package service;
 
+import exception.OverlapTaskException;
 import model.Epic;
-import model.Status;
 import model.Subtask;
 import model.Task;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 
 public interface TaskManager {
 
@@ -28,18 +29,18 @@ public interface TaskManager {
     void deleteAllEpics();
 
     /*Получение по идентификатору*/
-    Task getTask(int id) throws IOException;
+    Task getTask(int id);
 
-    Subtask getSubtask(int id) throws IOException;
+    Subtask getSubtask(int id);
 
-    Task getEpic(int id) throws IOException;
+    Epic getEpic(int id);
 
     /*Добавление задачи, подзадачи, епика*/
-    void addTask(Task task) throws IOException;
+    void addTask(Task task);
 
-    void addSubtask(Subtask subtask) throws IOException;
+    void addSubtask(Subtask subtask);
 
-    void addEpic(Epic epic) throws IOException;
+    void addEpic(Epic epic);
 
     /*Обновление задачи, подзадачи, епика*/
     void updateTask(Task task);
@@ -49,13 +50,19 @@ public interface TaskManager {
     void updateEpic(Epic epic);
 
     /*Удаление по идентификатору*/
-    void deleteTask(int id) throws IOException;
+    void deleteTask(int id);
 
     void deleteSubtask(int id);
 
     void deleteEpic(int id);
 
     List<Task> getHistory();
+
+    void getEpicTime(int id);
+
+    List<Task> getPrioritizedTasks();
+
+    void checkTaskOverlap();
 
 }
 

@@ -10,7 +10,7 @@ public class Subtask extends Task {
 
     @Override
     public String toString() {
-        return getId() + "," + TaskType.SUBTASK + "," + getName() + ","+ getStatus() + "," + getDescription() + "," + epicId;
+        return getId() + "," + TaskType.SUBTASK + "," + getName() + ","+ getStatus() + "," + getDescription() + "," + epicId + "," + getStartTime() + "," + getDuration();
     }
 
     public Integer getEpicId() {

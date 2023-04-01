@@ -1,11 +1,17 @@
 package model;
 
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalAmount;
+
 public class Task {
     private int id;
     private String name;
     private Status status;
     private String description;
-
+    private int duration;
+    private LocalDateTime startTime;
 
     public Task(int id, String name, String description, Status status) {
         this.id = id;
@@ -14,10 +20,13 @@ public class Task {
         this.status = status;
     }
 
+    public Task() {
+    }
+
 
     @Override
     public String toString() {
-        return getId() + "," + TaskType.TASK + "," + getName() + "," + status + "," + description;
+        return getId() + "," + TaskType.TASK + "," + getName() + "," + status + "," + description + "," + getStartTime() + "," + getDuration();
     }
 
     public int getId() {
@@ -48,4 +57,23 @@ public class Task {
         return TaskType.TASK;
     }
 
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return startTime.plus(Duration.ofHours(duration));
+    }
 }
