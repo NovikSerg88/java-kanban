@@ -12,7 +12,7 @@ import java.nio.file.Path;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private final File file;
-    static final String PATH = "resources/Data.csv";
+    private static final String PATH = "resources/Data.csv";
 
     public FileBackedTaskManager(File file) {
         super();
@@ -31,13 +31,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         Subtask subtask2 = new Subtask(fileBackedTaskManager.setId(), "Sub2", "", Status.NEW, 2);
         Subtask subtask3 = new Subtask(fileBackedTaskManager.setId(), "Sub3", "", Status.NEW, 2);
 
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime time1 = LocalDateTime.of(2023, 03, 30, 13, 00);
-        LocalDateTime time2 = LocalDateTime.of(2023, 03, 30, 17, 00);
-        LocalDateTime time3 = LocalDateTime.of(2023, 03, 30, 19, 00);
-        LocalDateTime time4 = LocalDateTime.of(2023, 03, 31, 19, 00);
-        LocalDateTime time5 = LocalDateTime.of(2023, 03, 31, 21, 00);
+        LocalDateTime time1 = LocalDateTime.of(2023, 03, 1, 13, 00);
+        LocalDateTime time2 = LocalDateTime.of(2023, 03, 2, 17, 00);
+        LocalDateTime time3 = LocalDateTime.of(2023, 03, 3, 19, 00);
+        LocalDateTime time4 = LocalDateTime.of(2023, 03, 4, 19, 00);
+        LocalDateTime time5 = LocalDateTime.of(2023, 03, 5, 21, 00);
 
         subtask1.setDuration(2);
         subtask1.setStartTime(time1);
@@ -63,11 +61,15 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         fileBackedTaskManager.getEpic(2);
         fileBackedTaskManager.getSubtask(3);
         fileBackedTaskManager.getTask(0);
-        fileBackedTaskManager.getTask(1);
 
         /* Создаем новый менеджер из файла */
         TaskManager fileBackedTaskManager1 = loadFromFile(file);
 
+        /* Проверяем, что все таски и история просмотра восстановлены из файла */
+        System.out.println(fileBackedTaskManager1.getListOfTasks());
+        System.out.println(fileBackedTaskManager1.getListOfSubtasks());
+        System.out.println(fileBackedTaskManager1.getListOfEpics());
+        System.out.println(fileBackedTaskManager1.getHistory());
     }
 
     @Override
@@ -184,22 +186,30 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
+    public void updateEpicsStatus(int epicId) {
+        super.updateEpicsStatus(epicId);
+    }
+
+    @Override
     public List<Task> getHistory() {
         return super.getHistory();
     }
 
-    /* Добавили три метода добавления тасок в память*/
-    public void addTaskInMemory(Task task) {
-        super.addTask(task);
+    @Override
+    public void getEpicTime(int epicId) {
+        super.getEpicTime(epicId);
     }
 
-    public void addSubtaskInMemory(Subtask subtask) {
-        super.addSubtask(subtask);
+    @Override
+    public List<Task> getPrioritizedTasks() {
+        return super.getPrioritizedTasks();
     }
 
-    public void addEpicInMemory(Epic epic) {
-        super.addEpic(epic);
+    @Override
+    public boolean checkTaskOverlap(Task newTask) {
+        return super.checkTaskOverlap(newTask);
     }
+
 
     /* Метод сохранения менеджера в файл */
     public void save() {
@@ -238,11 +248,15 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 //Создаем таску в менеджере из прочитанной строки и формируем коллекции в памяти
                 Task task = manager.fromString(line);
                 if (task instanceof Epic) {
-                    manager.addEpicInMemory((Epic) task);
+                    Epic epic = (Epic) task;
+                    manager.epics.put(epic.getId(), epic);
                 } else if (task instanceof Subtask) {
-                    manager.addSubtaskInMemory((Subtask) task);
+                    Subtask subtask = (Subtask) task;
+                    int epicId = subtask.getEpicId();
+                    manager.subtasks.put(subtask.getId(), subtask);
+                    manager.epics.get(epicId).getSubtasks().put(subtask.getId(), subtask);
                 } else {
-                    manager.addTaskInMemory(task);
+                    manager.tasks.put(task.getId(), task);
                 }
             }
             //Читаем строку с историей и формируем менеджер истории
@@ -297,7 +311,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     String strEpic = array[array.length - 2];
                     DateTimeFormatter formatterEpic = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
                     LocalDateTime dateTimeEpic = LocalDateTime.parse(strEpic, formatterEpic);
-                    task.setDuration(Integer.parseInt(array[array.length-1]));
+                    task.setDuration(Integer.parseInt(array[array.length - 1]));
                     task.setStartTime(dateTimeEpic);
                     break;
                 default:
@@ -325,13 +339,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     /* Метод восстановления id просмотренных тасок менеджера истории из строки */
     public static List<Integer> historyFromString(String value) {
         List<Integer> history = new ArrayList<>();
-        String[] line = value.split(", ");
-        for (int i = 0; i < line.length; i++) {
-            history.add(Integer.valueOf(line[i]));
+        if (value != null && !value.isEmpty()) {
+            String[] line = value.split(", ");
+            for (int i = 0; i < line.length; i++) {
+                history.add(Integer.valueOf(line[i]));
+            }
         }
         return history;
     }
-
 }
 
 

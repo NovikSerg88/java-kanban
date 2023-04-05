@@ -1,9 +1,7 @@
 package model;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalAmount;
 
 public class Task {
     private int id;
@@ -22,7 +20,6 @@ public class Task {
 
     public Task() {
     }
-
 
     @Override
     public String toString() {

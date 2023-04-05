@@ -26,7 +26,9 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     Subtask subtask2 = new Subtask(3, "Subtask2", "Test", Status.DONE, 1);
 
     @BeforeEach
-    public abstract void beforeEach();
+    public void beforeEach(){
+        taskManager = createManager();
+    }
 
     @Test
     void addTaskTest() {
@@ -145,7 +147,6 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.addSubtask(subtask1);
         taskManager.addSubtask(subtask2);
 
-
         // Стандартное поведение
         taskManager.getEpicTime(epic1.getId());
         assertEquals(LocalDateTime.of(2023, 3, 30, 10, 0), epic1.getStartTime());
@@ -193,8 +194,57 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         }
         taskManager.deleteAllTask();
         taskManager.deleteAllSubtasks();
+
         List<Task> actualNullTasks = taskManager.getPrioritizedTasks();
         assertTrue(actualNullTasks.isEmpty());
+    }
+
+    @Test
+    public void HistoryManagerAddTest() {
+        Task task1 = new Task(1, "Task 1", "Description 1", Status.IN_PROGRESS);
+        Task task2 = new Task(2, "Task 2", "Description 2", Status.DONE);
+        InMemoryHistoryManager historyManager = new InMemoryHistoryManager();
+
+        historyManager.add(task1);
+        List<Task> history = historyManager.getHistory();
+        assertEquals(1, history.size());
+        assertEquals(task1, history.get(0));
+
+        historyManager.add(task2);
+        history = historyManager.getHistory();
+        assertEquals(2, history.size());
+        assertEquals(task1, history.get(0));
+        assertEquals(task2, history.get(1));
+    }
+
+    @Test
+    public void HistoryManagerRemoveTest() {
+        Task task1 = new Task(1, "Task 1", "Description 1", Status.IN_PROGRESS);
+        Task task2 = new Task(2, "Task 2", "Description 2", Status.DONE);
+        InMemoryHistoryManager historyManager = new InMemoryHistoryManager();
+
+        historyManager.add(task1);
+        historyManager.add(task2);
+        historyManager.remove(1);
+
+        List<Task> history = historyManager.getHistory();
+        assertEquals(1, history.size());
+        assertEquals(task2, history.get(0));
+    }
+
+    @Test
+    public void HistoryManagerGetHistoryTest() {
+        Task task1 = new Task(1, "Task 1", "Description 1", Status.IN_PROGRESS);
+        Task task2 = new Task(2, "Task 2", "Description 2", Status.DONE);
+        InMemoryHistoryManager historyManager = new InMemoryHistoryManager();
+
+        historyManager.add(task1);
+        historyManager.add(task2);
+        List<Task> history = historyManager.getHistory();
+        List<Task> expectedHistory = new ArrayList<>();
+        expectedHistory.add(task1);
+        expectedHistory.add(task2);
+        assertEquals(expectedHistory, history);
     }
 }
 

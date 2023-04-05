@@ -1,18 +1,16 @@
 package service;
 
-import model.Epic;
-import model.Task;
-import org.junit.jupiter.api.BeforeEach;
+import exception.ManagerSaveException;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,14 +20,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
 
     @Override
     FileBackedTaskManager createManager() {
-        Path path = Path.of(PATH);
-        File file = new File(String.valueOf(path));
-        return new FileBackedTaskManager(file);
-    }
-
-    @BeforeEach
-    public void beforeEach() {
-        taskManager = createManager();
+        return new FileBackedTaskManager(new File(PATH));
     }
 
     @Test
@@ -65,47 +56,67 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
     }
 
     @Test
-    void loadFromFile() {
-        // Создание временного файла
-        Path path = Path.of(PATH);
-        File tempFile = new File(String.valueOf(path));
+    void loadFromFileEmptyTaskListTest() {
+        // Создаем пустой файл с заголовком
+        try {
+            File file = new File(PATH);
+            FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8);
+            writer.write("id,type,name,status,description,epic, startTime, duration\n");
+            writer.close();
+            // Загружаем менеджер из файла
+            FileBackedTaskManager manager = FileBackedTaskManager.loadFromFile(file);
+            // Проверяем, что в менеджере нет задач
+            assertEquals(0, manager.getListOfTasks().size());
+            assertEquals(0, manager.getListOfSubtasks().size());
+            assertEquals(0, manager.getListOfEpics().size());
+            // Удаляем файл
+            file.delete();
+        } catch (IOException e) {
+            throw new ManagerSaveException("Запись не возможна.", e);
+        }
+    }
 
-        // Создание тестовых данных
-        LocalDateTime time1 = LocalDateTime.of(2023, 03, 30, 13, 00);
-        LocalDateTime time2 = LocalDateTime.of(2023, 03, 30, 17, 00);
+    @Test
+    void loadFromFileEpicWithoutSubtasksTest() {
+        // Создаем файл с одним эпиком
+        try {
+            File file = new File(PATH);
+            FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8);
+            writer.write("id,type,name,status,description,epic, startTime, duration\n");
+            writer.write("0,EPIC,EpicTest,IN_PROGRESS,Test,{},2023-03-01T13:00,5\n");
+            writer.close();
+            // Загружаем менеджер из файла
+            FileBackedTaskManager manager = FileBackedTaskManager.loadFromFile(file);
+            // Проверяем, что в менеджере нет задач
+            assertEquals(0, manager.getListOfTasks().size());
+            assertEquals(0, manager.getListOfSubtasks().size());
+            assertEquals(1, manager.getListOfEpics().size());
+            // Удаляем файл
+            file.delete();
+        } catch (IOException e) {
+            throw new ManagerSaveException("Запись не возможна.", e);
+        }
+    }
 
-        subtask1.setDuration(2);
-        subtask1.setStartTime(time1);
-
-        task1.setDuration(2);
-        task1.setStartTime(time2);
-
-        FileBackedTaskManager fBmanager = new FileBackedTaskManager(tempFile);
-        fBmanager.addEpic(epic1);
-        fBmanager.addTask(task1);
-        fBmanager.addSubtask(subtask1);
-
-        // Заполнение истории
-        fBmanager.getTask(0);
-        fBmanager.getSubtask(2);
-        fBmanager.getEpic(1);
-
-        // Сохранение тестовых данных во временный файл
-        fBmanager.save();
-
-        // Загрузка данных из временного файла в новый экземпляр менеджера
-        FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(tempFile);
-
-        // Проверка, что все объекты из тестовых данных были корректно загружены в новый экземпляр менеджера
-        assertNotNull(newManager);
-        assertEquals(1, newManager.getListOfEpics().size());
-        assertEquals(1, newManager.getListOfTasks().size());
-        assertEquals(1, newManager.getListOfSubtasks().size());
-
-        Epic newEpic = newManager.getEpic(epic1.getId());
-        assertNotNull(newEpic);
-        assertEquals(epic1.getName(), newEpic.getName());
-        assertEquals(epic1.getDescription(), newEpic.getDescription());
-
+    @Test
+    void loadFromFileEmptyHistoryTest() {
+        try {
+            // Создаем файл с одним эпиком
+            File file = new File(PATH);
+            FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8);
+            writer.write("id,type,name,status,description,epic, startTime, duration\n");
+            writer.write("0,TASK,Task1,NEW,,2023-03-04T19:00,0\n");
+            writer.write("\n");
+            writer.write("0");
+            writer.close();
+            // Загружаем менеджер из файла
+            FileBackedTaskManager manager = FileBackedTaskManager.loadFromFile(file);
+            // Проверяем, что задача добавилась в историю
+            assertEquals(manager.tasks.get(0).getId(), manager.getHistory().get(0).getId());
+            // Удаляем файл
+            file.delete();
+        } catch (IOException e) {
+            throw new ManagerSaveException("Запись не возможна.", e);
+        }
     }
 }
