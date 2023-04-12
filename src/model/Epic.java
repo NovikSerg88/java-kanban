@@ -5,20 +5,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Epic extends Task {
-    private Map<Integer, Subtask> subtasks = new HashMap<>();
+    private Map<Integer, Subtask> epicSubtasks = new HashMap<>();
     private LocalDateTime endTime;
 
-    public Epic(int id, String name, String description, Status status) {
-        super(id, name, description, status);
+    public Epic(int id, String name, String description, Status status, LocalDateTime startTime, int duration) {
+        super(id, name, description, status, startTime, duration);
     }
 
     @Override
     public String toString() {
-        return getId() + "," + TaskType.EPIC + "," + getName() + "," + getStatus() + "," + getDescription() + "," + subtasks + "," + getStartTime() + "," + getDuration();
+        return getId() + "," + TaskType.EPIC + "," + getName() + "," + getStatus() + "," + getDescription() + "," + getStartTime() + "," + getDuration() + "," + getSubtasks() + "," + getEndTime();
     }
 
     public Map<Integer, Subtask> getSubtasks() {
-        return subtasks;
+        return epicSubtasks;
     }
 
     public TaskType getType() {
@@ -32,5 +32,9 @@ public class Epic extends Task {
 
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
+    }
+
+    public void setEpicSubtasks(Map<Integer, Subtask> epicSubtasks) {
+        this.epicSubtasks = epicSubtasks;
     }
 }

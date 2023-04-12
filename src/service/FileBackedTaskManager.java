@@ -11,7 +11,7 @@ import java.util.*;
 import java.nio.file.Path;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
-    private final File file;
+    private File file;
     private static final String PATH = "resources/Data.csv";
 
     public FileBackedTaskManager(File file) {
@@ -19,42 +19,33 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         this.file = file;
     }
 
+    public FileBackedTaskManager() {
+        super();
+    }
+
     public static void main(String[] args) {
         Path path = Path.of(PATH);
         File file = new File(String.valueOf(path));
         TaskManager fileBackedTaskManager = new FileBackedTaskManager(file);
 
-        Task task1 = new Task(fileBackedTaskManager.setId(), "Task1", "", Status.NEW);
-        Task task2 = new Task(fileBackedTaskManager.setId(), "Task2", "", Status.NEW);
-        Epic epic1 = new Epic(fileBackedTaskManager.setId(), "Epic1", "", Status.NEW);
-        Subtask subtask1 = new Subtask(fileBackedTaskManager.setId(), "Sub1", "", Status.DONE, 2);
-        Subtask subtask2 = new Subtask(fileBackedTaskManager.setId(), "Sub2", "", Status.NEW, 2);
-        Subtask subtask3 = new Subtask(fileBackedTaskManager.setId(), "Sub3", "", Status.NEW, 2);
-
-        LocalDateTime time1 = LocalDateTime.of(2023, 03, 1, 13, 00);
+        LocalDateTime time1 = LocalDateTime.of(2023, 03, 1, 17, 00);
         LocalDateTime time2 = LocalDateTime.of(2023, 03, 2, 17, 00);
         LocalDateTime time3 = LocalDateTime.of(2023, 03, 3, 19, 00);
         LocalDateTime time4 = LocalDateTime.of(2023, 03, 4, 19, 00);
         LocalDateTime time5 = LocalDateTime.of(2023, 03, 5, 21, 00);
 
-        subtask1.setDuration(2);
-        subtask1.setStartTime(time1);
+        Task task1 = new Task(fileBackedTaskManager.setId(), "Task1", "", Status.NEW, time1, 2);
+        Task task2 = new Task(fileBackedTaskManager.setId(), "Task2", "", Status.NEW, time2, 2);
+        Epic epic1 = new Epic(fileBackedTaskManager.setId(), "Epic1", "", Status.NEW, time3, 2);
+        Subtask subtask1 = new Subtask(fileBackedTaskManager.setId(), "Sub1", "", Status.DONE, time4, 2, 2);
+        Subtask subtask2 = new Subtask(fileBackedTaskManager.setId(), "Sub2", "", Status.NEW, time5, 2, 2);
 
-        subtask2.setDuration(2);
-        subtask2.setStartTime(time2);
-
-        subtask3.setDuration(1);
-        subtask3.setStartTime(time3);
-
-        task1.setStartTime(time4);
-        task2.setStartTime(time5);
-
+        fileBackedTaskManager.addTask(task1);
+        fileBackedTaskManager.addTask(task2);
         fileBackedTaskManager.addEpic(epic1);
         fileBackedTaskManager.addSubtask(subtask1);
         fileBackedTaskManager.addSubtask(subtask2);
-        fileBackedTaskManager.addSubtask(subtask3);
-        fileBackedTaskManager.addTask(task1);
-        fileBackedTaskManager.addTask(task2);
+
 
         fileBackedTaskManager.getTask(0);
         fileBackedTaskManager.getTask(1);
@@ -280,39 +271,28 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     /* Метод создания задачи из строки */
     public Task fromString(String value) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
         Task task = null;
         String[] line = value.split("\\n");
         for (int i = 0; i < line.length; i++) {
-            String[] array = line[i].split(",");
-            int id = Integer.parseInt(array[0]);
-            TaskType taskType = TaskType.valueOf(array[1]);
-            String name = array[2];
-            Status status = Status.valueOf(array[3]);
-            String description = array[4];
+            String[] part = line[i].split(",");
+            int id = Integer.parseInt(part[0]);
+            TaskType taskType = TaskType.valueOf(part[1]);
+            String name = part[2];
+            Status status = Status.valueOf(part[3]);
+            String description = part[4];
+            LocalDateTime startTime = LocalDateTime.parse(part[5], formatter);
+            int duration = Integer.parseInt(part[6]);
             switch (taskType) {
                 case TASK:
-                    task = new Task(id, name, description, status);
-                    String strTask = array[5];
-                    DateTimeFormatter formatterTask = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-                    LocalDateTime dateTime = LocalDateTime.parse(strTask, formatterTask);
-                    task.setStartTime(dateTime);
-                    task.setDuration(Integer.parseInt(array[6]));
+                    task = new Task(id, name, description, status, startTime, duration);
                     break;
                 case SUBTASK:
-                    task = new Subtask(id, name, description, status, Integer.parseInt(array[5]));
-                    String strSubtask = array[6];
-                    DateTimeFormatter formatterSubtask = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-                    LocalDateTime dateTimeSubtask = LocalDateTime.parse(strSubtask, formatterSubtask);
-                    task.setDuration(Integer.parseInt(array[7]));
-                    task.setStartTime(dateTimeSubtask);
+                    int epicId = Integer.parseInt(part[7]);
+                    task = new Subtask(id, name, description, status, startTime, duration, epicId);
                     break;
                 case EPIC:
-                    task = new Epic(id, name, description, status);
-                    String strEpic = array[array.length - 2];
-                    DateTimeFormatter formatterEpic = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-                    LocalDateTime dateTimeEpic = LocalDateTime.parse(strEpic, formatterEpic);
-                    task.setDuration(Integer.parseInt(array[array.length - 1]));
-                    task.setStartTime(dateTimeEpic);
+                    task = new Epic(id, name, description, status, startTime, duration);
                     break;
                 default:
                     throw new IllegalArgumentException("Неизвестный тип задачи");
@@ -328,7 +308,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             return "";
         }
         for (Task task : manager.getHistory()) {
-            id.add(task.getId());
+            if(task != null) {
+                id.add(task.getId());
+            }
         }
         // Преобразовали список id в строку и убрали []
         String history = id.toString();
