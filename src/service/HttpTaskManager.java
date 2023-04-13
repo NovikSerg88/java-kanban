@@ -1,14 +1,19 @@
 package service;
 
+import adapter.LocalDateTimeAdapter;
 import com.google.gson.Gson;
-import exception.ManagerSaveException;
+import com.google.gson.GsonBuilder;
 import model.Task;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 
 public class HttpTaskManager extends FileBackedTaskManager {
 
     private KVTaskClient kvTaskClient;
+    private final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .create();
 
     public HttpTaskManager(String url) {
         super();
@@ -23,14 +28,12 @@ public class HttpTaskManager extends FileBackedTaskManager {
             allTasks.putAll(subtasks);
             allTasks.putAll(epics);
 
-            Gson gson = new Gson();
             String json = gson.toJson(allTasks);
 
-            kvTaskClient.put("tasks", json);
+            kvTaskClient.put("manager", json);
 
         } catch (RuntimeException e) {
             throw new RuntimeException("Запись не возможна.", e);
         }
-
     }
 }

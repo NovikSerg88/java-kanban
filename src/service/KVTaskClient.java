@@ -10,7 +10,6 @@ public class KVTaskClient {
     private final String serverUrl;
     private final String apiToken;
 
-
     public KVTaskClient(String serverUrl) {
         this.serverUrl = serverUrl;
         apiToken = register();
