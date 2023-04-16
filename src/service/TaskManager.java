@@ -39,18 +39,18 @@ public interface TaskManager {
     void addEpic(Epic epic);
 
     /*Обновление задачи, подзадачи, епика*/
-    void updateTask(Task task);
+    int updateTask(Task task);
 
-    void updateSubtask(Subtask subtask);
+    int updateSubtask(Subtask subtask);
 
-    void updateEpic(Epic epic);
+    int updateEpic(Epic epic);
 
     /*Удаление по идентификатору*/
-    void deleteTask(int id);
+    int deleteTask(int id);
 
-    void deleteSubtask(int id);
+    int deleteSubtask(int id);
 
-    void deleteEpic(int id);
+    int deleteEpic(int id);
 
     List<Task> getHistory();
 

@@ -1,251 +1,337 @@
-package service;
+//
+// Source code recreated from a .class file by IntelliJ IDEA
+// (powered by FernFlower decompiler)
+//
 
-import model.Epic;
-import model.Status;
-import model.Subtask;
-import model.Task;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+package service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import model.Epic;
+import model.Status;
+import model.Subtask;
+import model.Task;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public abstract class TaskManagerTest<T extends TaskManager> {
-
     protected T taskManager;
 
-    abstract T createManager();
-
-    Task task1 = new Task(0, "Task1", "Test", Status.NEW);
-    Epic epic1 = new Epic(1, "Epic1", "Test", Status.NEW);
-    Subtask subtask1 = new Subtask(2, "Subtask1", "Test", Status.DONE, 1);
-    Subtask subtask2 = new Subtask(3, "Subtask2", "Test", Status.DONE, 1);
-
-    @BeforeEach
-    public void beforeEach(){
-        taskManager = createManager();
+    public TaskManagerTest() {
     }
 
     @Test
     void addTaskTest() {
-        taskManager.addTask(task1);
-
-        final Task savedTask = taskManager.getTask(0);
-
-        assertNotNull(savedTask, "Задача не найдена.");
-        assertEquals(task1, savedTask, "Задачи не совпадают.");
-
-        final Map<Integer, Task> tasks = taskManager.getListOfTasks();
-
-        assertNotNull(tasks, "Задачи не возвращаются.");
-        assertEquals(1, tasks.size(), "Неверное количество задач.");
-        assertEquals(task1, tasks.get(0), "Задачи не совпадают.");
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        Task task = new Task(this.taskManager.setId(), "task", "test", Status.NEW, time, 1);
+        this.taskManager.addTask(task);
+        Assertions.assertEquals(task, this.taskManager.getListOfTasks().get(task.getId()), "Задачи не совпадают");
+        assertTrue(this.taskManager.getListOfTasks().containsKey(task.getId()), "Задача не добавлена");
+        Assertions.assertNotNull(this.taskManager.getListOfTasks(), "Пустой список задач");
     }
 
     @Test
     void addSubtaskTest() {
-        taskManager.addEpic(epic1);
-        taskManager.addSubtask(subtask1);
-
-        final Subtask savedSubtask = taskManager.getSubtask(2);
-
-        assertNotNull(savedSubtask, "Подзадача не найдена.");
-        assertEquals(subtask1, savedSubtask, "Подзадачи не совпадают.");
-
-        final Map<Integer, Subtask> subtasks = taskManager.getListOfSubtasks();
-        final Map<Integer, Epic> epics = taskManager.getListOfEpics();
-
-        assertNotNull(subtasks, "Подзадачи не возвращаются.");
-        assertNotNull(epics.get(1).getSubtasks(), "Подзадачи эпика не возвращаются.");
-
-        assertEquals(1, subtasks.size(), "Неверное количество подзадач.");
-        assertEquals(1, epics.get(1).getSubtasks().size(), "Неверное количество подзадач в эпике.");
-
-        assertEquals(subtask1, subtasks.get(2), "Подзадачи не совпадают.");
-        assertEquals(subtask1, epics.get(1).getSubtasks().get(2), "Подзадачи не совпадают.");
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        Epic epic = new Epic(this.taskManager.setId(), "epic", "test", Status.NEW, time, 0);
+        Subtask subtask = new Subtask(this.taskManager.setId(), "subtask", "test", Status.NEW, time, 1, 0);
+        this.taskManager.addEpic(epic);
+        this.taskManager.addSubtask(subtask);
+        Assertions.assertEquals(subtask, this.taskManager.getListOfSubtasks().get(subtask.getId()), "Задачи не совпадают");
+        assertTrue(this.taskManager.getListOfSubtasks().containsKey(subtask.getId()), "Задача не добавлена");
+        Assertions.assertNotNull(this.taskManager.getListOfSubtasks(), "Пустой список задач");
+        Assertions.assertEquals(subtask, ((Epic)this.taskManager.getListOfEpics().get(epic.getId())).getSubtasks().get(subtask.getId()), "Задачи не совпадают");
+        assertTrue(((Epic)this.taskManager.getListOfEpics().get(epic.getId())).getSubtasks().containsKey(subtask.getId()), "Задача не добавлена");
+        Assertions.assertNotNull(((Epic)this.taskManager.getListOfEpics().get(epic.getId())).getSubtasks(), "Пустой список задач");
     }
 
     @Test
     void addEpicTest() {
-        taskManager.addEpic(epic1);
-        final Epic savedEpic = taskManager.getEpic(1);
-
-        assertNotNull(savedEpic, "Эпик не найден.");
-        assertEquals(epic1, savedEpic, "Эпики не совпадают.");
-
-        final Map<Integer, Epic> epics = taskManager.getListOfEpics();
-
-        assertNotNull(epics, "Эпики не возвращаются.");
-        assertEquals(1, epics.size(), "Неверное количество эпиков.");
-        assertEquals(epic1, epics.get(1), "Эпики не совпадают.");
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        Epic epic = new Epic(this.taskManager.setId(), "epic", "test", Status.NEW, time, 0);
+        this.taskManager.addEpic(epic);
+        Assertions.assertEquals(epic, this.taskManager.getListOfEpics().get(epic.getId()), "Задачи не совпадают");
+        assertTrue(this.taskManager.getListOfEpics().containsKey(epic.getId()), "Задача не добавлена");
+        Assertions.assertNotNull(this.taskManager.getListOfEpics(), "Пустой список задач");
     }
 
     @Test
-    public void getHistoryTest() {
-        final HistoryManager historyManager = Managers.getDefaultHistory();
-        historyManager.add(task1);
-        final List<Task> history = historyManager.getHistory();
-        assertNotNull(history, "История не пустая.");
-        assertEquals(1, history.size(), "История не пустая.");
+    void getListOfTasks() {
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        Task task = new Task(this.taskManager.setId(), "task", "test", Status.NEW, time, 1);
+        this.taskManager.addTask(task);
+        Assertions.assertEquals(task, this.taskManager.getListOfTasks().get(task.getId()), "Список не вернул задачу");
+        assertTrue(this.taskManager.getListOfTasks().containsKey(task.getId()), "Идентификаторы не совпадают");
+        this.taskManager.deleteAllTask();
+        assertTrue(this.taskManager.getListOfTasks().isEmpty(), "Список не пустой");
     }
 
     @Test
-    public void deleteTaskTest() {
-        taskManager.addTask(task1);
-        final Map<Integer, Task> tasks = taskManager.getListOfTasks();
-        int idActual = tasks.get(0).getId();
-        int idExpected = 0;
-
-        taskManager.deleteTask(idExpected);
-        assertEquals(idExpected, idActual);
-        assertTrue(tasks.isEmpty(), "Список задач не пустой");
+    void getListOfSubtasks() {
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        Epic epic = new Epic(this.taskManager.setId(), "epic", "test", Status.NEW, time, 0);
+        Subtask subtask = new Subtask(this.taskManager.setId(), "subtask", "test", Status.NEW, time, 1, 0);
+        this.taskManager.addEpic(epic);
+        this.taskManager.addSubtask(subtask);
+        Assertions.assertEquals(subtask, taskManager.getListOfSubtasks().get(subtask.getId()), "Список не вернул задачу");
+        assertTrue(this.taskManager.getListOfSubtasks().containsKey(subtask.getId()), "Идентификаторы не совпадают");
+        this.taskManager.deleteAllSubtasks();
+        assertTrue(this.taskManager.getListOfSubtasks().isEmpty(), "Список не пустой");
     }
 
     @Test
-    public void deleteSubtaskTest() {
-        taskManager.addEpic(epic1);
-        taskManager.addSubtask(subtask1);
+    void getListOfEpics() {
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        Epic epic = new Epic(this.taskManager.setId(), "epic", "test", Status.NEW, time, 0);
+        this.taskManager.addEpic(epic);
+        Assertions.assertEquals(epic, this.taskManager.getListOfEpics().get(epic.getId()), "Список не вернул задачу");
+        assertTrue(this.taskManager.getListOfEpics().containsKey(epic.getId()), "Идентификаторы не совпадают");
+        this.taskManager.deleteAllEpics();
+        assertTrue(this.taskManager.getListOfEpics().isEmpty(), "Список не пустой");
+    }
 
-        final Map<Integer, Epic> epics = taskManager.getListOfEpics();
-        final Map<Integer, Subtask> subtasks = taskManager.getListOfSubtasks();
+    @Test
+    public void deleteAllTask() {
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        Task task = new Task(this.taskManager.setId(), "task", "test", Status.NEW, time, 1);
+        this.taskManager.addTask(task);
+        this.taskManager.deleteAllTask();
+        assertNotEquals(task, this.taskManager.getListOfTasks().get(task.getId()), "Задача не удалена");
+        this.taskManager.deleteAllTask();
+        assertTrue(this.taskManager.getListOfTasks().isEmpty(), "Список не пустой");
+    }
 
-        int epicId = subtasks.get(2).getEpicId();
-        taskManager.deleteSubtask(2);
+    @Test
+    public void deleteAllSubtasks() {
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        Epic epic = new Epic(this.taskManager.setId(), "epic", "test", Status.NEW, time, 0);
+        Subtask subtask = new Subtask(this.taskManager.setId(), "subtask", "test", Status.NEW, time, 1, 0);
+        taskManager.addEpic(epic);
+        taskManager.addSubtask(subtask);
+        taskManager.deleteAllSubtasks();
+        assertNotEquals(subtask, taskManager.getListOfSubtasks().get(subtask.getId()), "Задача не удалена");
+        assertNotEquals(subtask, taskManager.getListOfEpics().get(epic.getId()).getSubtasks().get(subtask.getId()), "Задача не удалена");
+        taskManager.deleteAllSubtasks();
+        assertTrue(taskManager.getListOfSubtasks().isEmpty(), "Список не пустой");
+        assertTrue(taskManager.getListOfEpics().get(epic.getId()).getSubtasks().isEmpty(), "Список не пустой");
+    }
 
-        assertNull(subtasks.get(2));
-        assertTrue(subtasks.isEmpty(), "Список подзадач не пустой");
-        assertTrue(epics.get(1).getSubtasks().isEmpty());
+    @Test
+    public void deleteAllEpics() {
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        Epic epic = new Epic(this.taskManager.setId(), "epic", "test", Status.NEW, time, 0);
+        Subtask subtask = new Subtask(this.taskManager.setId(), "subtask", "test", Status.NEW, time, 1, 0);
+        this.taskManager.addEpic(epic);
+        this.taskManager.addSubtask(subtask);
+        this.taskManager.deleteAllEpics();
+        assertNotEquals(epic, this.taskManager.getListOfEpics().get(epic.getId()), "Задача не удалена");
+        assertTrue(this.taskManager.getListOfSubtasks().isEmpty(), "Задачи эпика не удалены");
+        this.taskManager.deleteAllEpics();
+        assertTrue(this.taskManager.getListOfEpics().isEmpty(), "Список не пустой");
+    }
+
+    @Test
+    public void getTask() {
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        Task task = new Task(this.taskManager.setId(), "task", "test", Status.NEW, time, 1);
+        this.taskManager.addTask(task);
+        Task getTask = this.taskManager.getTask(task.getId());
+        Assertions.assertEquals(task, getTask, "Задачи не совпадают");
+        this.taskManager.deleteTask(task.getId());
+        Assertions.assertNull(this.taskManager.getTask(task.getId()), "Задача не удалена");
+        int invalidId = this.taskManager.setId();
+        Assertions.assertNull(this.taskManager.getTask(invalidId), "Неправильный идентификатор");
+    }
+
+    @Test
+    public void getSubtask() {
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        Epic epic = new Epic(this.taskManager.setId(), "epic", "test", Status.NEW, time, 0);
+        Subtask subtask = new Subtask(this.taskManager.setId(), "subtask", "test", Status.NEW, time, 1, 0);
+        this.taskManager.addEpic(epic);
+        this.taskManager.addSubtask(subtask);
+        Subtask getSubtask = this.taskManager.getSubtask(subtask.getId());
+        Assertions.assertEquals(subtask, getSubtask, "Задачи не совпадают");
+        this.taskManager.deleteSubtask(subtask.getId());
+        Assertions.assertNull(this.taskManager.getSubtask(subtask.getId()), "Задача не удалена");
+        int invalidId = this.taskManager.setId();
+        Assertions.assertNull(this.taskManager.getSubtask(invalidId), "Неправильный идентификатор");
+    }
+
+    @Test
+    public void getEpic() {
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        Epic epic = new Epic(this.taskManager.setId(), "epic", "test", Status.NEW, time, 0);
+        this.taskManager.addEpic(epic);
+        Epic getEpic = this.taskManager.getEpic(epic.getId());
+        Assertions.assertEquals(epic, getEpic, "Задачи не совпадают");
+        this.taskManager.deleteEpic(epic.getId());
+        Assertions.assertNull(this.taskManager.getEpic(epic.getId()), "Задача не удалена");
+        int invalidId = this.taskManager.setId();
+        Assertions.assertNull(this.taskManager.getEpic(invalidId), "Неправильный идентификатор");
+    }
+
+    @Test
+    public void deleteTask() {
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        Task task = new Task(this.taskManager.setId(), "task", "test", Status.NEW, time, 1);
+        this.taskManager.addTask(task);
+        this.taskManager.deleteTask(task.getId());
+        Assertions.assertNull(this.taskManager.getTask(task.getId()), "Задача не удалена");
+        Assertions.assertEquals(-1, this.taskManager.deleteTask(task.getId()), "Задача не пустая");
+        int invalidId = this.taskManager.setId();
+        assertNotEquals(task.getId(), this.taskManager.deleteTask(invalidId), "Неправильный идентификатор");
+    }
+
+    @Test
+    public void deleteSubtask() {
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        Epic epic = new Epic(this.taskManager.setId(), "epic", "test", Status.NEW, time, 0);
+        Subtask subtask = new Subtask(this.taskManager.setId(), "subtask", "test", Status.NEW, time, 1, 0);
+        this.taskManager.addEpic(epic);
+        this.taskManager.addSubtask(subtask);
+        this.taskManager.deleteSubtask(subtask.getId());
+        Assertions.assertNull(this.taskManager.getSubtask(subtask.getId()), "Задача не удалена");
+        Assertions.assertEquals(-1, this.taskManager.deleteSubtask(subtask.getId()), "Задача не пустая");
+        int invalidId = this.taskManager.setId();
+        assertNotEquals(subtask.getId(), this.taskManager.deleteSubtask(invalidId), "Неправильный идентификатор");
     }
 
     @Test
     public void deleteEpic() {
-        final Map<Integer, Epic> epics = taskManager.getListOfEpics();
-        final Map<Integer, Subtask> subtasks = taskManager.getListOfSubtasks();
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        Epic epic = new Epic(this.taskManager.setId(), "epic", "test", Status.NEW, time, 0);
+        this.taskManager.addEpic(epic);
+        this.taskManager.deleteEpic(epic.getId());
+        Assertions.assertNull(this.taskManager.getEpic(epic.getId()), "Задача не удалена");
+        Assertions.assertEquals(-1, this.taskManager.deleteEpic(epic.getId()), "Задача не пустая");
+        int invalidId = this.taskManager.setId();
+        assertNotEquals(epic.getId(), this.taskManager.deleteEpic(invalidId), "Неправильный идентификатор");
+    }
 
-        taskManager.addEpic(epic1);
-        taskManager.addSubtask(subtask1);
+    @Test
+    public void updateTask() {
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        LocalDateTime newTime = LocalDateTime.of(2023, 3, 2, 17, 0);
+        Task task = new Task(this.taskManager.setId(), "task", "test", Status.NEW, time, 1);
+        this.taskManager.addTask(task);
+        Task newTask = new Task(task.getId(), "newTask", "test", Status.NEW, newTime, 1);
+        this.taskManager.updateTask(newTask);
+        Assertions.assertEquals("newTask", this.taskManager.getTask(task.getId()).getName(), "Задача не обновилась");
+        this.taskManager.deleteTask(newTask.getId());
+        Assertions.assertEquals(-1, this.taskManager.updateTask(task), "Задача не пустая");
+        Task invalidTask = new Task(this.taskManager.setId(), "newTask", "test", Status.NEW, newTime, 1);
+        Assertions.assertEquals(-1, this.taskManager.updateTask(invalidTask), "Неправильный идентификатор");
+    }
 
-        taskManager.deleteEpic(1);
+    @Test
+    public void updateSubtask() {
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        LocalDateTime newTime = LocalDateTime.of(2023, 3, 2, 17, 0);
+        Epic epic = new Epic(this.taskManager.setId(), "epic", "test", Status.NEW, time, 0);
+        Subtask subtask = new Subtask(this.taskManager.setId(), "subtask", "test", Status.NEW, time, 1, 0);
+        this.taskManager.addEpic(epic);
+        this.taskManager.addSubtask(subtask);
+        Subtask newSubtask = new Subtask(subtask.getId(), "newSubtask", "test", Status.NEW, newTime, 1, 0);
+        this.taskManager.updateSubtask(newSubtask);
+        Assertions.assertEquals("newSubtask", this.taskManager.getSubtask(subtask.getId()).getName(), "Задача не обновилась");
+        Assertions.assertEquals("newSubtask", ((Subtask)((Epic)this.taskManager.getListOfEpics().get(epic.getId())).getSubtasks().get(newSubtask.getId())).getName(), "Задача внутри эпика не обновилась");
+        this.taskManager.deleteSubtask(newSubtask.getId());
+        Assertions.assertEquals(-1, this.taskManager.updateSubtask(subtask), "Задача не пустая");
+        Subtask invalidSubtask = new Subtask(this.taskManager.setId(), "newSubtask", "test", Status.NEW, newTime, 1, 0);
+        Assertions.assertEquals(-1, this.taskManager.updateTask(invalidSubtask), "Неправильный идентификатор");
+    }
 
-        assertNull(epics.get(1));
-        assertTrue(subtasks.isEmpty(), "Список подзадач не пустой");
+    @Test
+    public void updateEpic() {
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        LocalDateTime newTime = LocalDateTime.of(2023, 3, 2, 17, 0);
+        Epic epic = new Epic(this.taskManager.setId(), "epic", "test", Status.NEW, time, 0);
+        this.taskManager.addEpic(epic);
+        Epic newEpic = new Epic(epic.getId(), "newEpic", "test", Status.NEW, newTime, 1);
+        this.taskManager.updateEpic(newEpic);
+        Assertions.assertEquals("newEpic", this.taskManager.getEpic(epic.getId()).getName(), "Задача не обновилась");
+        this.taskManager.deleteEpic(newEpic.getId());
+        Assertions.assertEquals(-1, this.taskManager.updateEpic(epic), "Задача не пустая");
+        Epic invalidEpic = new Epic(this.taskManager.setId(), "newEpic", "test", Status.NEW, newTime, 1);
+        Assertions.assertEquals(-1, this.taskManager.updateEpic(invalidEpic), "Неправильный идентификатор");
+    }
+
+    @Test
+    public void getHistory() {
+        LocalDateTime time = LocalDateTime.of(2023, 3, 1, 17, 0);
+        Task task = new Task(this.taskManager.setId(), "task", "test", Status.NEW, time, 1);
+        HistoryManager historyManager = Managers.getDefaultHistory();
+        historyManager.add(task);
+        List<Task> history = historyManager.getHistory();
+        Assertions.assertNotNull(history, "История не пустая.");
+        Assertions.assertEquals(1, history.size(), "История не пустая.");
     }
 
     @Test
     public void getEpicTimeTest() {
-
-        subtask1.setStartTime(LocalDateTime.of(2023, 3, 30, 10, 0));
-        subtask1.setDuration(10);
-        subtask2.setStartTime(LocalDateTime.of(2023, 3, 31, 10, 0));
-        subtask2.setDuration(20);
-
-        taskManager.addEpic(epic1);
-        taskManager.addSubtask(subtask1);
-        taskManager.addSubtask(subtask2);
-
-        // Стандартное поведение
-        taskManager.getEpicTime(epic1.getId());
-        assertEquals(LocalDateTime.of(2023, 3, 30, 10, 0), epic1.getStartTime());
-        assertEquals(LocalDateTime.of(2023, 3, 31, 10, 0), epic1.getEndTime());
-        assertEquals(30, epic1.getDuration());
-
-        // С пустым списком задач
-        epic1.getSubtasks().clear();
-        taskManager.getEpicTime(epic1.getId());
-        assertNull(epic1.getStartTime());
-        assertNull(epic1.getEndTime());
-        assertEquals(0, epic1.getDuration());
-
-        // С неверным идентификатором задачи
-        assertDoesNotThrow(() -> taskManager.getEpicTime(1));
+        LocalDateTime time1 = LocalDateTime.of(2023, 3, 1, 17, 0);
+        LocalDateTime time2 = LocalDateTime.of(2023, 3, 2, 17, 0);
+        Epic epic = new Epic(this.taskManager.setId(), "epic", "test", Status.NEW, LocalDateTime.MAX, 0);
+        Subtask subtask1 = new Subtask(this.taskManager.setId(), "subtask", "test", Status.NEW, time1, 1, 0);
+        Subtask subtask2 = new Subtask(this.taskManager.setId(), "subtask", "test", Status.NEW, time2, 1, 0);
+        this.taskManager.addEpic(epic);
+        this.taskManager.addSubtask(subtask1);
+        this.taskManager.addSubtask(subtask2);
+        this.taskManager.getEpicTime(epic.getId());
+        Assertions.assertEquals(time1, epic.getStartTime());
+        Assertions.assertEquals(subtask2.getEndTime(), epic.getEndTime());
+        Assertions.assertEquals(subtask1.getDuration() + subtask2.getDuration(), epic.getDuration());
+        epic.getSubtasks().clear();
+        this.taskManager.getEpicTime(epic.getId());
+        Assertions.assertEquals((Object)null, epic.getStartTime());
+        Assertions.assertEquals((Object)null, epic.getEndTime());
+        Assertions.assertEquals(0, epic.getDuration());
+        Assertions.assertDoesNotThrow(() -> {
+            this.taskManager.getEpicTime(epic.getId());
+        });
     }
 
     @Test
-    public void getPrioritizedTasksTest() {
-        List<Task> expectedTasks = new ArrayList<>();
-        LocalDateTime time1 = LocalDateTime.of(2023, 03, 30, 13, 00);
-        LocalDateTime time2 = LocalDateTime.of(2023, 03, 30, 17, 00);
-        LocalDateTime time3 = LocalDateTime.of(2023, 03, 30, 19, 00);
-        subtask1.setDuration(2);
-        subtask1.setStartTime(time2);
-        subtask2.setDuration(2);
-        subtask2.setStartTime(time3);
-        task1.setStartTime(time1);
-        task1.setDuration(2);
+    public void getPrioritizedTasks() {
+        LocalDateTime time1 = LocalDateTime.of(2023, 3, 1, 17, 0);
+        LocalDateTime time2 = LocalDateTime.of(2023, 3, 2, 17, 0);
+        Epic epic = new Epic(this.taskManager.setId(), "epic", "test", Status.NEW, LocalDateTime.MIN, 0);
+        Subtask subtask = new Subtask(this.taskManager.setId(), "subtask", "test", Status.NEW, time1, 1, 0);
+        Task task = new Task(this.taskManager.setId(), "task", "test", Status.NEW, time2, 1);
+        List<Task> expectedTasks = new ArrayList();
+        expectedTasks.add(subtask);
+        expectedTasks.add(task);
+        this.taskManager.addEpic(epic);
+        this.taskManager.addTask(task);
+        this.taskManager.addSubtask(subtask);
+        List<Task> actualTasks = this.taskManager.getPrioritizedTasks();
+        Assertions.assertEquals(expectedTasks.size(), actualTasks.size());
 
-        expectedTasks.add(task1);
-        expectedTasks.add(subtask1);
-        expectedTasks.add(subtask2);
-
-        taskManager.addEpic(epic1);
-        taskManager.addTask(task1);
-        taskManager.addSubtask(subtask1);
-        taskManager.addSubtask(subtask2);
-
-        List<Task> actualTasks = taskManager.getPrioritizedTasks();
-
-        assertEquals(expectedTasks.size(), actualTasks.size());
-        for (int i = 0; i < expectedTasks.size(); i++) {
-            assertEquals(expectedTasks.get(i), actualTasks.get(i));
+        for(int i = 0; i < expectedTasks.size(); ++i) {
+            Assertions.assertEquals(expectedTasks.get(i), actualTasks.get(i));
         }
-        taskManager.deleteAllTask();
-        taskManager.deleteAllSubtasks();
 
-        List<Task> actualNullTasks = taskManager.getPrioritizedTasks();
+        this.taskManager.deleteAllTask();
+        this.taskManager.deleteAllSubtasks();
+        List<Task> actualNullTasks = this.taskManager.getPrioritizedTasks();
         assertTrue(actualNullTasks.isEmpty());
     }
 
     @Test
-    public void HistoryManagerAddTest() {
-        Task task1 = new Task(1, "Task 1", "Description 1", Status.IN_PROGRESS);
-        Task task2 = new Task(2, "Task 2", "Description 2", Status.DONE);
-        InMemoryHistoryManager historyManager = new InMemoryHistoryManager();
-
-        historyManager.add(task1);
-        List<Task> history = historyManager.getHistory();
-        assertEquals(1, history.size());
-        assertEquals(task1, history.get(0));
-
-        historyManager.add(task2);
-        history = historyManager.getHistory();
-        assertEquals(2, history.size());
-        assertEquals(task1, history.get(0));
-        assertEquals(task2, history.get(1));
-    }
-
-    @Test
-    public void HistoryManagerRemoveTest() {
-        Task task1 = new Task(1, "Task 1", "Description 1", Status.IN_PROGRESS);
-        Task task2 = new Task(2, "Task 2", "Description 2", Status.DONE);
-        InMemoryHistoryManager historyManager = new InMemoryHistoryManager();
-
-        historyManager.add(task1);
-        historyManager.add(task2);
-        historyManager.remove(1);
-
-        List<Task> history = historyManager.getHistory();
-        assertEquals(1, history.size());
-        assertEquals(task2, history.get(0));
-    }
-
-    @Test
-    public void HistoryManagerGetHistoryTest() {
-        Task task1 = new Task(1, "Task 1", "Description 1", Status.IN_PROGRESS);
-        Task task2 = new Task(2, "Task 2", "Description 2", Status.DONE);
-        InMemoryHistoryManager historyManager = new InMemoryHistoryManager();
-
-        historyManager.add(task1);
-        historyManager.add(task2);
-        List<Task> history = historyManager.getHistory();
-        List<Task> expectedHistory = new ArrayList<>();
-        expectedHistory.add(task1);
-        expectedHistory.add(task2);
-        assertEquals(expectedHistory, history);
+    public void checkTaskOverlap() {
+        LocalDateTime time1 = LocalDateTime.of(2023, 3, 1, 17, 0);
+        LocalDateTime time2 = LocalDateTime.of(2023, 3, 1, 19, 0);
+        Task task = new Task(this.taskManager.setId(), "task", "test", Status.NEW, time1, 1);
+        Task newTask = new Task(this.taskManager.setId(), "newTask", "test", Status.NEW, time2, 1);
+        this.taskManager.addTask(task);
+        List<Task> tasks = this.taskManager.getPrioritizedTasks();
+        Assertions.assertFalse(this.taskManager.checkTaskOverlap(newTask), "задачи пересекаются");
+        this.taskManager.getListOfTasks().clear();
+        Assertions.assertFalse(this.taskManager.checkTaskOverlap(newTask), "задачи пересекаются если список пуст");
     }
 }
-
-

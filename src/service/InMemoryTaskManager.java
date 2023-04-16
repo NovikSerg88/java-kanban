@@ -5,6 +5,7 @@ import model.Status;
 import model.Subtask;
 import model.Task;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -71,6 +72,7 @@ public class InMemoryTaskManager implements TaskManager {
         for (Integer subtaskId : subtasks.keySet()) {
             sortedTasks.remove(subtasks.get(subtaskId));
         }
+        subtasks.clear();
     }
 
     @Override
@@ -82,18 +84,27 @@ public class InMemoryTaskManager implements TaskManager {
     /*Получение по идентификатору*/
     @Override
     public Task getTask(int id) {
+        if (!tasks.containsKey(id)) {
+            return null;
+        }
         historyManager.add(tasks.get(id));
         return tasks.get(id);
     }
 
     @Override
     public Subtask getSubtask(int id) {
+        if (!subtasks.containsKey(id)) {
+            return null;
+        }
         historyManager.add(subtasks.get(id));
         return subtasks.get(id);
     }
 
     @Override
     public Epic getEpic(int id) {
+        if (!epics.containsKey(id)) {
+            return null;
+        }
         historyManager.add(epics.get(id));
         return epics.get(id);
     }
@@ -132,21 +143,27 @@ public class InMemoryTaskManager implements TaskManager {
 
     /*Обновление задачи, подзадачи, епика*/
     @Override
-    public void updateTask(Task task) {
+    public int updateTask(Task task) {
+        if (!tasks.containsKey(task.getId())) {
+            return -1;
+        }
         boolean isOverlap = checkTaskOverlap(task);
         if (!isOverlap) {
             System.out.println(sortedTasks);
             int currentId = task.getId();
             tasks.put(currentId, task);
             sortedTasks.add(task);
-            System.out.println(sortedTasks);
         } else {
             System.out.println("Невозможно обновить задачу " + task.getName() + " : задачи пересекаются по времени.");
         }
+        return task.getId();
     }
 
     @Override
-    public void updateSubtask(Subtask subtask) {
+    public int updateSubtask(Subtask subtask) {
+        if (!subtasks.containsKey(subtask.getId())) {
+            return -1;
+        }
         boolean isOverlap = checkTaskOverlap(subtask);
         if (!isOverlap) {
             int currentId = subtask.getId();
@@ -158,25 +175,37 @@ public class InMemoryTaskManager implements TaskManager {
         } else {
             System.out.println("Невозможно обновить задачу " + subtask.getName() + ": задачи пересекаются по времени.");
         }
+        return subtask.getId();
     }
 
     @Override
-    public void updateEpic(Epic epic) {
+    public int updateEpic(Epic epic) {
+        if (!epics.containsKey(epic.getId())) {
+            return -1;
+        }
         int currentId = epic.getId();
         epics.put(currentId, epic);
+        return epic.getId();
     }
 
     /*Удаление по идентификатору*/
     @Override
-    public void deleteTask(int id) {
+    public int deleteTask(int id) {
+        if (!tasks.containsKey(id)) {
+            return -1;
+        }
         Task task = tasks.get(id);
         tasks.remove(id);
         historyManager.remove(id);
         sortedTasks.remove(task);
+        return id;
     }
 
     @Override
-    public void deleteSubtask(int id) {
+    public int deleteSubtask(int id) {
+        if (!subtasks.containsKey(id)) {
+            return -1;
+        }
         Subtask subtask = subtasks.get(id);
         int epicId = subtasks.get(id).getEpicId();
         subtasks.remove(id);
@@ -184,16 +213,21 @@ public class InMemoryTaskManager implements TaskManager {
         updateEpicsStatus(epicId);
         historyManager.remove(id);
         sortedTasks.remove(subtask);
+        return id;
     }
 
     @Override
-    public void deleteEpic(int id) {
+    public int deleteEpic(int id) {
+        if (!epics.containsKey(id)) {
+            return -1;
+        }
         for (int subtaskId : epics.get(id).getSubtasks().keySet()) {
             subtasks.remove(subtaskId);
             historyManager.remove(subtaskId);
         }
         epics.remove(id);
         historyManager.remove(id);
+        return id;
     }
 
     /*Обновление статуса эпика*/
@@ -251,7 +285,7 @@ public class InMemoryTaskManager implements TaskManager {
                 maxStartTime = epicSubtasks.get(currentId).getStartTime();
             }
             if (epicSubtasks.get(currentId).getStartTime() != null && epicSubtasks.get(currentId).getStartTime().isAfter(minEndTime)) {
-                minEndTime = epicSubtasks.get(currentId).getStartTime();
+                minEndTime = epicSubtasks.get(currentId).getStartTime().plus(Duration.ofHours(epicSubtasks.get(currentId).getDuration()));
             }
             duration += epicSubtasks.get(currentId).getDuration();
         }
@@ -268,17 +302,18 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean checkTaskOverlap(Task newTask) {
         List<Task> tasks = getPrioritizedTasks();
-        boolean isOverlap = false;
-        if (tasks.size() != 0) {
+        if (!tasks.isEmpty()) {
             for (Task task : tasks) {
-                if (task.getStartTime() != null) {
-                    if (newTask.getStartTime() != null && newTask.getEndTime() != null && newTask.getStartTime().isBefore(task.getEndTime())) {
-                        isOverlap = true;
-                    }
+                if (task.getStartTime() != null && task.getEndTime() != null &&
+                        newTask.getStartTime() != null && newTask.getEndTime() != null &&
+                        ((newTask.getStartTime().isAfter(task.getStartTime()) && newTask.getStartTime().isBefore(task.getEndTime())) ||
+                                (newTask.getEndTime().isAfter(task.getStartTime()) && newTask.getEndTime().isBefore(task.getEndTime())) ||
+                                (newTask.getStartTime().isBefore(task.getStartTime()) && newTask.getEndTime().isAfter(task.getEndTime())))) {
+                    return true;
                 }
             }
         }
-        return isOverlap;
+        return false;
     }
 }
 

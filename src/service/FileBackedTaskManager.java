@@ -23,46 +23,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         super();
     }
 
-    public static void main(String[] args) {
-        Path path = Path.of(PATH);
-        File file = new File(String.valueOf(path));
-        TaskManager fileBackedTaskManager = new FileBackedTaskManager(file);
-
-        LocalDateTime time1 = LocalDateTime.of(2023, 03, 1, 17, 00);
-        LocalDateTime time2 = LocalDateTime.of(2023, 03, 2, 17, 00);
-        LocalDateTime time3 = LocalDateTime.of(2023, 03, 3, 19, 00);
-        LocalDateTime time4 = LocalDateTime.of(2023, 03, 4, 19, 00);
-        LocalDateTime time5 = LocalDateTime.of(2023, 03, 5, 21, 00);
-
-        Task task1 = new Task(fileBackedTaskManager.setId(), "Task1", "", Status.NEW, time1, 2);
-        Task task2 = new Task(fileBackedTaskManager.setId(), "Task2", "", Status.NEW, time2, 2);
-        Epic epic1 = new Epic(fileBackedTaskManager.setId(), "Epic1", "", Status.NEW, time3, 2);
-        Subtask subtask1 = new Subtask(fileBackedTaskManager.setId(), "Sub1", "", Status.DONE, time4, 2, 2);
-        Subtask subtask2 = new Subtask(fileBackedTaskManager.setId(), "Sub2", "", Status.NEW, time5, 2, 2);
-
-        fileBackedTaskManager.addTask(task1);
-        fileBackedTaskManager.addTask(task2);
-        fileBackedTaskManager.addEpic(epic1);
-        fileBackedTaskManager.addSubtask(subtask1);
-        fileBackedTaskManager.addSubtask(subtask2);
-
-
-        fileBackedTaskManager.getTask(0);
-        fileBackedTaskManager.getTask(1);
-        fileBackedTaskManager.getEpic(2);
-        fileBackedTaskManager.getSubtask(3);
-        fileBackedTaskManager.getTask(0);
-
-        /* Создаем новый менеджер из файла */
-        TaskManager fileBackedTaskManager1 = loadFromFile(file);
-
-        /* Проверяем, что все таски и история просмотра восстановлены из файла */
-        System.out.println(fileBackedTaskManager1.getListOfTasks());
-        System.out.println(fileBackedTaskManager1.getListOfSubtasks());
-        System.out.println(fileBackedTaskManager1.getListOfEpics());
-        System.out.println(fileBackedTaskManager1.getHistory());
-    }
-
     @Override
     public int setId() {
         return super.setId();
@@ -141,39 +101,63 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void updateTask(Task task) {
+    public int updateTask(Task task) {
+        if (!tasks.containsKey(task.getId())) {
+            return -1;
+        }
         super.updateTask(task);
         save();
+        return task.getId();
     }
 
     @Override
-    public void updateSubtask(Subtask subtask) {
+    public int updateSubtask(Subtask subtask) {
+        if (!subtasks.containsKey(subtask.getId())) {
+            return -1;
+        }
         super.updateSubtask(subtask);
         save();
+        return subtask.getId();
     }
 
     @Override
-    public void updateEpic(Epic epic) {
+    public int updateEpic(Epic epic) {
+        if (!epics.containsKey(epic.getId())) {
+            return -1;
+        }
         super.updateEpic(epic);
         save();
+        return epic.getId();
     }
 
     @Override
-    public void deleteTask(int id) {
+    public int deleteTask(int id) {
+        if (tasks.get(id) == null) {
+            return -1;
+        }
         super.deleteTask(id);
         save();
+        return id;
     }
 
     @Override
-    public void deleteSubtask(int id) {
+    public int deleteSubtask(int id) {
+        if (!subtasks.containsKey(id)) {
+            return -1;
+        }
         super.deleteSubtask(id);
         save();
+        return id;
     }
 
     @Override
-    public void deleteEpic(int id) {
+    public int deleteEpic(int id) {
+        if (!epics.containsKey(id)) {
+            return -1;
+        }
         super.deleteEpic(id);
         save();
+        return id;
     }
 
     @Override
@@ -308,7 +292,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             return "";
         }
         for (Task task : manager.getHistory()) {
-            if(task != null) {
+            if (task != null) {
                 id.add(task.getId());
             }
         }
