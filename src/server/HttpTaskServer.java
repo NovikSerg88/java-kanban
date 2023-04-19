@@ -35,10 +35,10 @@ public class HttpTaskServer {
         httpServer.createContext("/subtasks/subtask", new subtaskHandler());
         httpServer.createContext("/tasks", new tasksHandler());
         httpServer.createContext("/tasks/history", new tasksHistoryHandler());
-        httpServer.createContext("/tasks/task", new taskHandler());
         httpServer.start();
         System.out.println("HTTP-сервер запущен на " + PORT + " порту!");
     }
+
 
     public void start() {
         System.out.println("Запускаем сервер на порту " + PORT);
@@ -61,7 +61,6 @@ public class HttpTaskServer {
             System.out.println("Началась обработка " + method + " /tasks/task запроса от клиента.");
             switch (method) {
                 case ("GET"):
-                    System.out.println(exchange.getRequestURI().getRawQuery());
                     String getQuery = exchange.getRequestURI().getQuery();
                     String[] getQueryParameter = getQuery.split("=");
                     int getId = Integer.parseInt(getQueryParameter[1]);

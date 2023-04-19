@@ -57,6 +57,9 @@ public class InMemoryTaskManager implements TaskManager {
     /*Удаление всех задач, подзадач, епиков*/
     @Override
     public void deleteAllTask() {
+        if (tasks.isEmpty()) {
+            return;
+        }
         for (Integer taskId : tasks.keySet()) {
             sortedTasks.remove(tasks.get(taskId));
         }
@@ -65,18 +68,24 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteAllSubtasks() {
+        if (subtasks.isEmpty()) {
+            return;
+        }
         for (Integer epicId : epics.keySet()) {
             epics.get(epicId).getSubtasks().clear();
             updateEpicsStatus(epicId);
         }
         for (Integer subtaskId : subtasks.keySet()) {
             sortedTasks.remove(subtasks.get(subtaskId));
+            subtasks.clear();
         }
-        subtasks.clear();
     }
 
     @Override
     public void deleteAllEpics() {
+        if (epics.isEmpty()) {
+            return;
+        }
         subtasks.clear();
         epics.clear();
     }
@@ -84,7 +93,7 @@ public class InMemoryTaskManager implements TaskManager {
     /*Получение по идентификатору*/
     @Override
     public Task getTask(int id) {
-        if (!tasks.containsKey(id)) {
+        if(!tasks.containsKey(id)) {
             return null;
         }
         historyManager.add(tasks.get(id));
@@ -93,7 +102,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Subtask getSubtask(int id) {
-        if (!subtasks.containsKey(id)) {
+        if(!subtasks.containsKey(id)) {
             return null;
         }
         historyManager.add(subtasks.get(id));
@@ -102,7 +111,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Epic getEpic(int id) {
-        if (!epics.containsKey(id)) {
+        if(!epics.containsKey(id)){
             return null;
         }
         historyManager.add(epics.get(id));
@@ -149,7 +158,6 @@ public class InMemoryTaskManager implements TaskManager {
         }
         boolean isOverlap = checkTaskOverlap(task);
         if (!isOverlap) {
-            System.out.println(sortedTasks);
             int currentId = task.getId();
             tasks.put(currentId, task);
             sortedTasks.add(task);

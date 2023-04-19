@@ -44,11 +44,13 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     private List<Task> getTasks() {
-        List<Task> arrayList = new ArrayList<>();
-        for (Node<Task> currentNode = first; currentNode != null; currentNode = currentNode.next) {
-            arrayList.add(currentNode.data);
+        List<Task> historyList = new ArrayList<>();
+        Node<Task> currentNode = first;
+        while (currentNode != null) {
+            historyList.add(currentNode.data);
+            currentNode = currentNode.next;
         }
-        return arrayList;
+        return historyList;
     }
 
     private void unlink(Node<Task> currentNode) {
@@ -71,13 +73,15 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     private void removeNode(Node<Task> node) {
-        if (node != null) {
-            for (Node<Task> currentNode = first; currentNode != null; currentNode = currentNode.next) {
-                if (node.data.equals(currentNode.data)) {
-                    unlink(currentNode);
-                }
+        if (node == null) {
+            return;
+        }
+        for (Node<Task> currentNode = first; currentNode != null; currentNode = currentNode.next) {
+            if (node.data.equals(currentNode.data)) {
+                unlink(currentNode);
             }
         }
     }
 }
+
 

@@ -8,4 +8,9 @@ public class ManagerSaveException extends RuntimeException {
         super(message);
         e.printStackTrace();
     }
+
+    public ManagerSaveException(final String message) {
+        super(message);
+    }
+
 }
