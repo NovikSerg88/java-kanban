@@ -2,13 +2,18 @@ package service;
 
 import adapter.LocalDateTimeAdapter;
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import exception.ManagerSaveException;
 import model.Epic;
 import model.Subtask;
 import model.Task;
+import server.KVServer;
 
+import java.lang.reflect.Type;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class HttpTaskManager extends FileBackedTaskManager {
@@ -17,25 +22,22 @@ public class HttpTaskManager extends FileBackedTaskManager {
     private final Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
             .create();
+    private final Type taskType = new TypeToken<List<Task>>() {
+    }.getType();
 
     public HttpTaskManager(String url) {
         super();
         this.kvTaskClient = new KVTaskClient(url);
- //       load();
     }
 
     @Override
     public void save() {
         System.out.println("Началась обработка метода save менеджера\n");
         try {
- //           Map<Integer, Task> allTasks = new HashMap<>();
- //           allTasks.putAll(tasks);
- //           allTasks.putAll(subtasks);
- //           allTasks.putAll(epics);
-            String jsonTasks = gson.toJson(tasks);
-            String jsonSubtasks = gson.toJson(subtasks);
-            String jsonEpics = gson.toJson(epics);
-            String jsonHistory = gson.toJson(historyManager);
+            String jsonTasks = gson.toJson(tasks.values());
+            String jsonSubtasks = gson.toJson(subtasks.values());
+            String jsonEpics = gson.toJson(epics.values());
+            String jsonHistory = gson.toJson(historyManager.getHistory());
 
             kvTaskClient.put("tasks", jsonTasks);
             kvTaskClient.put("subtasks", jsonSubtasks);
@@ -47,31 +49,65 @@ public class HttpTaskManager extends FileBackedTaskManager {
         }
     }
 
-    private void load() {
+    public void load(String key) {
         System.out.println("Началась обработка метода load менеджера\n");
         try {
-            String json = kvTaskClient.load("manager");
+
+            String json = kvTaskClient.load(key);
             JsonElement jsonElement = JsonParser.parseString(json);
 
-            if (!jsonElement.isJsonObject()) {
-                System.out.println("Ответ от сервера не соответствует ожидаемому.");
-                return;
-            }
-            JsonObject jsonObject = jsonElement.getAsJsonObject();
-            JsonArray tasksArray = jsonObject.getAsJsonArray("tasks");
-            for (JsonElement taskElement : tasksArray) {
-                Task task = gson.fromJson(taskElement, Task.class);
-                tasks.put(task.getId(), task);
-            }
-            JsonArray subtasksArray = jsonObject.getAsJsonArray("subtasks");
-            for (JsonElement subtaskElement : subtasksArray) {
-                Subtask subtask = gson.fromJson(subtaskElement, Subtask.class);
-                subtasks.put(subtask.getId(), subtask);
-            }
-            JsonArray epicsArray = jsonObject.getAsJsonArray("epics");
-            for (JsonElement epicElement : epicsArray) {
-                Epic epic = gson.fromJson(epicElement, Epic.class);
-                epics.put(epic.getId(), epic);
+            switch (key) {
+                case "tasks":
+                    if (!jsonElement.isJsonArray()) {
+                        System.out.println("Ответ от сервера не соответствует ожидаемому.");
+                        return;
+                    }
+
+                    JsonArray tasksArray = jsonElement.getAsJsonArray();
+                    for (JsonElement taskElement : tasksArray) {
+                        Task task = gson.fromJson(taskElement, Task.class);
+                        tasks.put(task.getId(), task);
+                    }
+                    break;
+                case "subtasks":
+                    if (!jsonElement.isJsonArray()) {
+                        System.out.println("Ответ от сервера не соответствует ожидаемому.");
+                        return;
+                    }
+
+                    JsonArray subtasksArray = jsonElement.getAsJsonArray();
+                    for (JsonElement subtaskElement : subtasksArray) {
+                        Subtask subtask = gson.fromJson(subtaskElement, Subtask.class);
+                        subtasks.put(subtask.getId(), subtask);
+                    }
+                    break;
+                case "epics":
+                    if (!jsonElement.isJsonArray()) {
+                        System.out.println("Ответ от сервера не соответствует ожидаемому.");
+                        return;
+                    }
+
+                    JsonArray epicsArray = jsonElement.getAsJsonArray();
+                    for (JsonElement epicElement : epicsArray) {
+                        Epic epic = gson.fromJson(epicElement, Epic.class);
+                        epics.put(epic.getId(), epic);
+                    }
+                    break;
+                case "history":
+                    if (!jsonElement.isJsonArray()) {
+                        System.out.println("Ответ от сервера не соответствует ожидаемому.");
+                        return;
+                    }
+
+                    JsonArray historyArray = jsonElement.getAsJsonArray();
+                    List<Task> historyList = gson.fromJson(historyArray, taskType);
+                    for (Task historyTask : historyList) {
+                        historyManager.add(historyTask);
+                    }
+                    break;
+                default:
+                    System.out.println("Некорректный ключ.");
+                    break;
             }
         } catch (RuntimeException e) {
             throw new ManagerSaveException("Не удалось получить данные по указанному ключу");

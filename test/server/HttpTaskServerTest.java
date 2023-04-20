@@ -227,7 +227,6 @@ class HttpTaskServerTest {
         Type taskType = new TypeToken<List<Task>>() {
         }.getType();
         List<Task> history = gson.fromJson(response.body(), taskType);
-        System.out.println(history);
 
         assertEquals(200, response.statusCode());
         assertEquals(getTask.getId(), history.get(0).getId());

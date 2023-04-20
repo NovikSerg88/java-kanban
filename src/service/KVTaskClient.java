@@ -36,7 +36,6 @@ public class KVTaskClient {
             default:
                 System.out.println("Введен не существующий ключ");
         }
- //       String url = serverUrl + "/save/" + key + "?API_TOKEN=" + apiToken;
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
